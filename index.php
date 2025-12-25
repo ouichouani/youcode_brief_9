@@ -1,7 +1,19 @@
 <?php
 include 'connection/connection.php';
-include 'expenses/index.php';
-include 'incomes/index.php';
+session_start();
+
+isset($_SESSION['AuthUser']) ? $AuthUser = $_SESSION['AuthUser'] : $AuthUser = [];
+$isAuthenticated = !empty($AuthUser);
+
+isset($_SESSION['error']) && print_r($_SESSION['error']);
+isset($_SESSION['success']) && print_r($_SESSION['success']);
+
+$total_expenses = isset($_SESSION['TOTAL_EXPENSES']) ? $_SESSION['TOTAL_EXPENSES'] : 0;
+$total_incomes = isset($_SESSION['TOTAL_INCOMES']) ? $_SESSION['TOTAL_INCOMES'] : 0;
+$incomes = isset($_SESSION['INCOMES']) ? $_SESSION['INCOMES'] : [];
+$categories = isset($_SESSION['CATEGORIES']) ? $_SESSION['CATEGORIES'] : [];
+$expenses = isset($_SESSION['EXPENCES']) ? $_SESSION['EXPENCES'] : [];
+$history = isset($_SESSION['History']) ? $_SESSION['History'] : [];
 
 ?>
 
@@ -18,8 +30,42 @@ include 'incomes/index.php';
 
 <body class="bg-gray-100 p-6">
     <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <h1 class="text-3xl font-bold text-gray-800 mb-6">Financial Dashboard</h1>
+        <!-- Header with Auth Buttons -->
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Financial Dashboard</h1>
+
+            <!-- Auth Buttons -->
+            <div class="flex gap-3">
+                <?php if ($isAuthenticated): ?>
+
+                    <button id="logout" class="px-5 py-2.5 rounded-lg bg-gray-500 hover:bg-gray-600 text-white font-semibold transition duration-200 shadow-md">
+                        Logout
+                    </button>
+                    <button class="create_transaction px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition duration-200 shadow-md">
+                        + New Transaction
+                    </button>
+
+                    <button id="create_card" class="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white font-semibold transition duration-200 shadow-md">
+                        + New card
+                    </button>
+                    <button id="create_category" class="px-5 py-2.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-white font-semibold transition duration-200 shadow-md">
+                        + New category
+                    </button>
+
+
+                <?php else: ?>
+                    <button id="login" class="px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-semibold transition duration-200 shadow-md">
+                        Login
+                    </button>
+                    <!--onclick=" window.location.href='controllers/user_controller/rejester.php'" -->
+                    <button id="Register" class="px-5 py-2.5 rounded-lg bg-green-500 hover:bg-green-600 text-white font-semibold transition duration-200 shadow-md">
+                        Register
+                    </button>
+
+                <?php endif; ?>
+
+            </div>
+        </div>
 
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -101,7 +147,7 @@ include 'incomes/index.php';
         </section>
 
         <!-- Tables Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <!-- Expenses Table -->
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <table class="w-full">
@@ -118,16 +164,18 @@ include 'incomes/index.php';
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($expenses as $expense) {
-                            echo '<tr class="hover:bg-red-50">';
-                            echo "<td class='border border-red-500 px-3 py-2'><span class='font-medium'>" . number_format($expense['montant'], 2) . " DH</span></td>";
-                            echo "<td class='border border-red-500 px-3 py-2'><span class='text-sm text-gray-700'>" . htmlspecialchars($expense['description']) . "</span></td>";
-                            echo "<td class='border border-red-500 px-3 py-2'><span class='text-sm'>" . (new DateTime($expense['created_at']))->format('Y/m/d') . "</span></td>";
-                            echo "<td class='p-2 border border-red-500'>
+                        if (empty($expenses[0]["message"])) {
+                            foreach ($expenses as $expense) {
+                                echo '<tr class="hover:bg-red-50">';
+                                echo "<td class='border border-red-500 px-3 py-2'><span class='font-medium'>" . number_format($expense['amount'], 2) . " DH</span></td>";
+                                echo "<td class='border border-red-500 px-3 py-2'><span class='text-sm text-gray-700'>" . htmlspecialchars($expense['description']) . "</span></td>";
+                                echo "<td class='border border-red-500 px-3 py-2'><span class='text-sm'>" . (new DateTime($expense['created_at']))->format('Y/m/d') . "</span></td>";
+                                echo "<td class='p-2 border border-red-500'>
                                     <span name='" . $expense['id'] . "' class='delete_expense text-red-700 text-sm font-medium cursor-pointer hover:text-red-900 mr-2'>Delete</span>
                                     <span name='" . $expense['id'] . "' class='update_expense text-blue-700 text-sm font-medium cursor-pointer hover:text-blue-900'>Update</span>
                                   </td>";
-                            echo '</tr>';
+                                echo '</tr>';
+                            }
                         }
                         ?>
                     </tbody>
@@ -150,31 +198,109 @@ include 'incomes/index.php';
                     </thead>
                     <tbody>
                         <?php
-                        foreach ($incomes as $income) {
-                            echo '<tr class="hover:bg-green-50">';
-                            echo "<td class='border border-green-500 px-3 py-2'><span class='font-medium'>" . number_format($income['montant'], 2) . " DH</span></td>";
-                            echo "<td class='border border-green-500 px-3 py-2'><span class='text-sm text-gray-700'>" . htmlspecialchars($income['description']) . "</span></td>";
-                            echo "<td class='border border-green-500 px-3 py-2'><span class='text-sm'>" . (new DateTime($income['created_at']))->format('Y/m/d') . "</span></td>";
-                            echo "<td class='p-2 border border-green-500'>
+                        if (empty($incomes[0]["message"])) {
+                            foreach ($incomes as $income) {
+                                echo '<tr class="hover:bg-green-50">';
+                                echo "<td class='border border-green-500 px-3 py-2'><span class='font-medium'>" . number_format($income['amount'], 2) . " DH</span></td>";
+                                echo "<td class='border border-green-500 px-3 py-2'><span class='text-sm text-gray-700'>" . htmlspecialchars($income['description']) . "</span></td>";
+                                echo "<td class='border border-green-500 px-3 py-2'><span class='text-sm'>" . (new DateTime($income['created_at']))->format('Y/m/d') . "</span></td>";
+                                echo "<td class='p-2 border border-green-500'>
                                     <span name='" . $income['id'] . "' class='delete_income text-red-700 text-sm font-medium cursor-pointer hover:text-red-900 mr-2'>Delete</span>
                                     <span name='" . $income['id'] . "' class='update_income text-blue-700 text-sm font-medium cursor-pointer hover:text-blue-900'>Update</span>
                                   </td>";
-                            echo '</tr>';
+                                echo '</tr>';
+                            }
                         }
                         ?>
                     </tbody>
                 </table>
             </div>
         </div>
+
+        <!-- History Table - Full Width -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="border border-yellow-500 text-center bg-yellow-300 py-2 font-bold text-gray-700" colspan="6">TRANSACTION HISTORY</th>
+                    </tr>
+                    <tr class="bg-yellow-50">
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Type</th>
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Amount</th>
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Sender</th>
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Receiver</th>
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Date</th>
+                        <th class="border border-yellow-500 px-3 py-2 text-left text-sm font-semibold">Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (!empty($history) && empty($history[0]["message"])) {
+                        foreach ($history as $transaction) {
+                            echo '<tr class="hover:bg-yellow-50">';
+
+                            // Transaction Type with badge
+                            $typeBadge = '';
+                            $descriptionText = '';
+                            if ($transaction['transaction_type'] == 'sender') {
+                                $typeBadge = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Sent</span>';
+                                $descriptionText = 'You sent money to ' . htmlspecialchars($transaction['receiver_name']);
+                            } else {
+                                $typeBadge = '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Received</span>';
+                                $descriptionText = 'You received money from ' . htmlspecialchars($transaction['sender_name']);
+                            }
+                            echo "<td class='border border-yellow-500 px-3 py-2'>" . $typeBadge . "</td>";
+
+                            // Amount
+                            echo "<td class='border border-yellow-500 px-3 py-2'><span class='font-medium'>" . number_format($transaction['amount'], 2) . " DH</span></td>";
+
+                            // Sender info
+                            echo "<td class='border border-yellow-500 px-3 py-2'>
+                                <div class='text-sm font-medium'>" . htmlspecialchars($transaction['sender_name']) . "</div>
+                                <div class='text-xs text-gray-500'>" . htmlspecialchars($transaction['sender_email']) . "</div>
+                            </td>";
+
+                            // Receiver info
+                            echo "<td class='border border-yellow-500 px-3 py-2'>
+                                <div class='text-sm font-medium'>" . htmlspecialchars($transaction['receiver_name']) . "</div>
+                                <div class='text-xs text-gray-500'>" . htmlspecialchars($transaction['receiver_email']) . "</div>
+                            </td>";
+
+                            // Date
+                            echo "<td class='border border-yellow-500 px-3 py-2'><span class='text-sm'>" . (new DateTime($transaction['created_at']))->format('Y/m/d H:i') . "</span></td>";
+
+                            // Description column
+                            echo "<td class='border border-yellow-500 px-3 py-2'>
+                                <div class='text-sm text-gray-700'>" . $descriptionText . "</div>
+                                <div class='text-xs text-gray-500 mt-1'>
+                                    message : " . (isset($transaction['description']) && trim($transaction['description']) ? $transaction['description'] : 'no description') . "
+                                </div>
+                            </td>";
+
+                            echo '</tr>';
+                        }
+                    } else {
+                        echo '<tr>';
+                        echo '<td colspan="6" class="border border-yellow-500 px-3 py-8 text-center text-gray-500">No transaction history available</td>';
+                        echo '</tr>';
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
     </div>
+
+
 
     <script>
         const totalIncomes = <?php echo $total_incomes; ?>;
         const totalExpenses = <?php echo $total_expenses; ?>;
         const totalBalance = totalIncomes - totalExpenses;
+        const AuthUser = <?php echo json_encode($AuthUser); ?>;
+        //const cards = <?php //echo json_encode($cards); ?>;
+        const categories = <?php echo json_encode($categories); ?>;
+        const isAuthenticated = <?php echo $isAuthenticated ? 'true' : 'false'; ?>;
     </script>
 
     <script src="main.js"></script>
 </body>
-
-</html>
