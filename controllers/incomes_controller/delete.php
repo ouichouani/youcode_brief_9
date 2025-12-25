@@ -1,7 +1,11 @@
 <?php
 
-include '../connection/connection.php';
+include '../../connection/connection.php';
 $ERRORS = [];
+
+session_start() ;
+unset($_SESSION['error']);
+unset($_SESSION['success']);
 
 if ($_SERVER['REQUEST_METHOD'] == "POST" && $_POST["method"] == 'DELETE') {
     $id = $_POST['id'] ?? null;
@@ -17,9 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && $_POST["method"] == 'DELETE') {
     //IF THERE IS AN ERROR
     if (count($ERRORS)) {
         session_start();
-        $_SESSION['ERRORS'] = $ERRORS;
+        $_SESSION['error'] = $ERRORS;
         $connection->close();
-        header('Location: ../index.php?error=validation');
+        header('Location: ../../index.php?error=validation');
         exit;
     }
 
@@ -27,9 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && $_POST["method"] == 'DELETE') {
     $statement = $connection->prepare('DELETE FROM incomes WHERE id = ? ');
     if(!$statement){
         session_start() ;
-        $_SESSION['ERROR'] = "ERROR  $connection->error" ;
+        $_SESSION['error'] = "ERROR  $connection->error" ;
         $connection->close() ; 
-        header('Location: ../index.php?error=server error') ;
+        header('Location: ../../index.php?error=server error') ;
         exit() ;
     }
 
@@ -39,19 +43,18 @@ if ($_SERVER['REQUEST_METHOD'] == "POST" && $_POST["method"] == 'DELETE') {
     if(!$state){
 
         session_start() ;
-        $_SESSION['ERROR'] = "ERROR  $statement->error" ;
+        $_SESSION['error'] = "ERROR  $statement->error" ;
         $connection->close() ; 
-        header('Location: ../index.php?error=sql error') ;
+        header('Location: ../../index.php?error=sql error') ;
         exit() ;
     }
 
     
     $statement->close();
-    session_start();
-    $_SESSION['SUCCESS'] = 'expense updated successfully';
+    $_SESSION['success'] = 'expense updated successfully';
 }
 
 
 $connection->close() ;
-header("Location: ../index.php?success=delete successfully");
+header("Location: ../../index.php?success=delete successfully");
 exit;
