@@ -103,6 +103,7 @@ const REGISTER_BUTTONS = document.querySelectorAll('#Register');
 const LOGOUT_BUTTONS = document.querySelectorAll('#logout');
 const CATEGORY_BUTTONS = document.querySelector('#create_category');
 const CARD_BUTTONS = document.querySelector('#create_card');
+const CATEGORY_FILETR = document.querySelector('.category_filter') ;
 
 // Functions
 
@@ -145,7 +146,7 @@ function NOT_AUTHENTICATED() {
 function CREATE_ITEM(item) {
 
     const FORM = document.createElement('form');
-    FORM.setAttribute('action', `./controllers/${item}/create.php`);
+    FORM.setAttribute('action', `./controllers/${item}.php`);
     FORM.setAttribute('method', "POST");
 
     const style = item == 'expenses_controller' ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300';
@@ -159,35 +160,24 @@ function CREATE_ITEM(item) {
                 <div class="space-y-4">
                     <label class="block">
                         <span class="text-gray-700 font-medium">Montant (DH):</span>
-                        <input type="number" name="amount" placeholder="Enter amount" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="number" name="amount" step="0.01" placeholder="Enter amount" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </label>
 
+
                     <label class="block">
-                        <span class="text-gray-700 font-medium">Card:</span>
-                        <select name="id_card" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                            <option value="" >Select a card</option>
-                            ${cards.map(card => `<option value="${card.id}">${card.name}</option>`).join('')}
-                        </select>
-                    </label>
-                    ${(() => {
-            if (item == 'expenses_controller') {
-                return `<label class="block">
                         <span class="text-gray-700 font-medium">Category:</span>
                         <select name="category_id" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             <option value="">Select a category</option>
                             ${categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('')}
                         </select>
-                    </label>`
-            } else { return '' }
-        })()}
-
+                    </label>
 
                     <label class="block">
                         <span class="text-gray-700 font-medium">Description:</span>
                         <textarea name="description" placeholder="Enter description" rows="4" class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </label>
 
-                    <button type="submit" class='w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition duration-200 mt-6'>Create</button>
+                    <button type="submit" name='create' class='w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition duration-200 mt-6'>Create</button>
                 </div>
             `;
 
@@ -208,7 +198,7 @@ function CREATE_ITEM(item) {
 function DELETE_ITEM(type, element) {
 
     const FORM = document.createElement('form');
-    FORM.setAttribute('action', `./controllers/${type}/delete.php`);
+    FORM.setAttribute('action', `./controllers/${type}.php`);
     FORM.setAttribute('method', "POST");
 
     FORM.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-2xl p-6 w-[90vw] max-w-md z-50 border-2 border-red-300';
@@ -226,7 +216,7 @@ function DELETE_ITEM(type, element) {
                     <input type="hidden" name="id" value="${element.getAttribute('name')}">
 
                     <div class="flex gap-3 justify-center">
-                        <button type="submit" class='bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer transition duration-200'>Delete</button>
+                        <button type="submit" name='delete' class='bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg cursor-pointer transition duration-200'>Delete</button>
                         <button type="button" class='bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg cursor-pointer transition duration-200' id='remove_form'>Cancel</button>
                     </div>
                 </div>
@@ -248,7 +238,7 @@ function DELETE_ITEM(type, element) {
 function UPDATE_ITEM(type, element) {
 
     const FORM = document.createElement('form');
-    FORM.setAttribute('action', `./controllers/${type}/update.php`);
+    FORM.setAttribute('action', `./controllers/${type}.php`);
     FORM.setAttribute('method', "POST");
 
     const style = type == 'expenses_controller' ? 'bg-red-50 border-red-300' : 'bg-green-50 border-green-300';
@@ -268,32 +258,22 @@ function UPDATE_ITEM(type, element) {
                         <input type="number" name="amount" placeholder="Enter amount"  class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </label>
 
-                    <label class="block">
-                        <span class="text-gray-700 font-medium">Card:</span>
-                            <select name="id_card"  class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                                <option value="" >Select a card</option>
-                                ${cards.map(card => `<option value="${card.id}">${card.name}</option>`).join('')}
-                        </select>
-                    </label>
 
-                    ${(() => {
-            if (type == 'expenses_controller') {
-                return `<label class="block">
+                    <label class="block">
                         <span class="text-gray-700 font-medium">Category:</span>
                         <select name="category_id" class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
                             <option value="">Select a category</option>
                             ${categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('')}
                         </select>
-                    </label>`
-            } else { return '' }
-        })()}
+                    </label>
+
 
                     <label class="block">
                         <span class="text-gray-700 font-medium">Description:</span>
                         <textarea name="description" placeholder="Enter description" rows="4" class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                     </label>
 
-                    <button type="submit" class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition duration-200 mt-6'>Update</button>
+                    <button type="submit" name='update'  class='w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition duration-200 mt-6'>Update</button>
 
                 </div>
             `;
@@ -492,58 +472,6 @@ function CREATE_TRANSACTION_FUNC() {
 //     document.body.appendChild(FORM);
 }
 
-function CREATE_CARD() {
-
-//     const FORM = document.createElement('form');
-//     FORM.setAttribute('action', './controllers/cards_controller/create.php');
-//     FORM.setAttribute('method', "POST");
-
-//     FORM.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-indigo-50 border-2 border-indigo-300 rounded-lg shadow-2xl p-6 w-[90vw] max-w-md z-50';
-//     FORM.innerHTML = `
-//         <div class="flex justify-between items-center mb-6">
-//             <h2 class="text-2xl font-bold text-gray-800">Create New Card</h2>
-//             <button type="button" id='remove_form' class='bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full text-white font-bold flex items-center justify-center cursor-pointer transition duration-200'>×</button>
-//         </div>
-
-//         <div class="space-y-4">
-//             <input type="hidden" name="user_id" value="${AuthUser.id || ''}">
-
-//             <label class="block">
-//                 <span class="text-gray-700 font-medium">Card Name:</span>
-//                 <input type="text" name="name" placeholder="Enter card name" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-//             </label>
-
-//             <label class="block">
-//                 <span class="text-gray-700 font-medium">Card balance:</span>
-//                 <input type="number" name="balance" placeholder="Enter card balance" required class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-//             </label>
-
-//             <label class="block">
-//                 <span class="text-gray-700 font-medium">Description:</span>
-//                 <textarea name="description" placeholder="Enter card description" rows="4" class="mt-1 w-full p-3 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
-//             </label>
-
-//             <label class="flex items-center p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer transition duration-200">
-//                 <input type="checkbox" name="default_card" value="1" class="h-5 w-5 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-pointer">
-//                 <span class="ml-3 text-gray-700 font-medium">Set as default card</span>
-//             </label>
-
-//             <button type="submit" class='w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg cursor-pointer transition duration-200 mt-6'>Create Card</button>
-//         </div>
-//     `;
-
-//     const backdrop = document.createElement('div');
-//     backdrop.className = 'fixed inset-0 bg-black bg-opacity-50 z-40';
-//     backdrop.id = 'modal-backdrop';
-
-//     FORM.querySelector('#remove_form').addEventListener('click', () => {
-//         FORM.remove();
-//         backdrop.remove();
-//     });
-
-//     document.body.appendChild(backdrop);
-//     document.body.appendChild(FORM);
-}
 
 function CREATE_CATEGORY() {
     const FORM = document.createElement('form');
@@ -593,42 +521,50 @@ function CREATE_CATEGORY() {
 }
 
 // EVENTS 
-if (CARD_BUTTONS) CARD_BUTTONS.addEventListener('click', CREATE_CARD);
+
 if (CATEGORY_BUTTONS) CATEGORY_BUTTONS.addEventListener('click', CREATE_CATEGORY);
 
-
-CREATE_INCOME.addEventListener('click', () =>{
+if(CREATE_INCOME){
+    CREATE_INCOME.addEventListener('click', () =>{
         if (!isAuthenticated) {
-        NOT_AUTHENTICATED();
-        return;
-    }
-    CREATE_ITEM('incomes_controller');
-});
+            NOT_AUTHENTICATED();
+            return;
+        }
+        CREATE_ITEM('incomes_controller');
+    });
+}
 
-CREATE_EXPENCE.addEventListener('click', () => {
+if(CREATE_EXPENCE){
+    CREATE_EXPENCE.addEventListener('click', () => {
         if (!isAuthenticated) {
-        NOT_AUTHENTICATED();
-        return;
-    }
-    CREATE_ITEM('expenses_controller')
-});
+            NOT_AUTHENTICATED();
+            return;
+        }
+        CREATE_ITEM('expenses_controller')
+    });
+}
 
-UPDATE_INCOME_BUTTONS.forEach(element => {
-    if (!isAuthenticated) {
-        NOT_AUTHENTICATED();
-        return;
-    }
-    element.addEventListener('click', () => UPDATE_ITEM('incomes_controller', element));
-});
+if(UPDATE_INCOME_BUTTONS){
+    UPDATE_INCOME_BUTTONS.forEach(element => {
+        if (!isAuthenticated) {
+            NOT_AUTHENTICATED();
+            return;
+        }
+        element.addEventListener('click', () => UPDATE_ITEM('incomes_controller', element));
+    });
+}
 
-UPDATE_EXPENCE_BUTTONS.forEach(element => {
-    if (!isAuthenticated) {
-        NOT_AUTHENTICATED();
-        return;
-    }
-    element.addEventListener('click', () => UPDATE_ITEM('expenses_controller', element));
-});
+if(UPDATE_EXPENCE_BUTTONS){
+    UPDATE_EXPENCE_BUTTONS.forEach(element => {
+        if (!isAuthenticated) {
+            NOT_AUTHENTICATED();
+            return;
+        }
+        element.addEventListener('click', () => UPDATE_ITEM('expenses_controller', element));
+    });
+}
 
+if(DELETE_INCOME_BUTTONS){
 DELETE_INCOME_BUTTONS.forEach(element => {
     if (!isAuthenticated) {
         NOT_AUTHENTICATED();
@@ -636,7 +572,9 @@ DELETE_INCOME_BUTTONS.forEach(element => {
     }
     element.addEventListener('click', () => DELETE_ITEM('incomes_controller', element));
 });
+}
 
+if(DELETE_EXPENCE_BUTTONS){
 DELETE_EXPENCE_BUTTONS.forEach(element => {
     if (!isAuthenticated) {
         NOT_AUTHENTICATED();
@@ -644,6 +582,7 @@ DELETE_EXPENCE_BUTTONS.forEach(element => {
     }
     element.addEventListener('click', () => DELETE_ITEM('expenses_controller', element));
 });
+}
 
 // AUTH EVENT
 LOGIN_BUTTONS.forEach(button => {

@@ -2,6 +2,7 @@ show databases;
 
 CREATE DATABASE youcode_brief_9;
 
+
 USE youcode_brief_9;
 
 CREATE TABLE users (
@@ -46,10 +47,12 @@ create table expenses (
 
 SHOW TABLES;
 
-
+show COLUMNS from incomes ;
 
 
 SELECT * FROM users;
+SELECT * FROM categories;
+SELECT * FROM incomes;
 
 USE youcode_brief_9;
 
